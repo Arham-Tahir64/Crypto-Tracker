@@ -9,6 +9,7 @@ import AddTransactionModal from "../../components/Transactions/AddTransactionMod
 import PortfolioSummary from "../../components/Portfolio/PortfolioSummary"
 import HoldingsList from "../../components/Portfolio/HoldingsList"
 import TransactionsList from "../../components/Portfolio/TransactionsList"
+import PortfolioChart from "../../components/Portfolio/PortfolioChart"
 
 export default function Dashboard() {
   const [isAddTransactionOpen, setIsAddTransactionOpen] = useState(false);
@@ -117,6 +118,20 @@ export default function Dashboard() {
           </div>
 
           <div className="space-y-6">
+            <div className="grid gap-6 lg:grid-cols-3">
+              <div className="lg:col-span-2">
+                <PortfolioChart />
+              </div>
+              <div className="p-6 bg-white rounded-lg border border-gray-200 shadow-sm">
+                <h3 className="text-lg font-semibold mb-2 text-gray-900">Quick Stats</h3>
+                <p className="text-sm text-gray-500 mb-4">Portfolio overview</p>
+                <div className="space-y-4">
+                  <div className="text-center text-gray-500 py-8">
+                    <p className="text-sm">Add transactions to see your portfolio stats</p>
+                  </div>
+                </div>
+              </div>
+            </div>
             <HoldingsList />
             <TransactionsList />
           </div>

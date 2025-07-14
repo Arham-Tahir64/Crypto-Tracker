@@ -355,3 +355,80 @@ def get_portfolio_summary():
         "num_holdings": len(holdings)
     }
     return jsonify(summary), 200
+
+
+@main_bp.route('/portfolio/history', methods=['GET'])
+@jwt_required()
+def get_portfolio_history():
+    # Get portfolio value over the last 30 days using historical prices
+    current_user_id = get_jwt_identity()
+    holdings = PortfolioHolding.query.filter_by(user_id=current_user_id).join(Crypto).all()
+    
+    if not holdings:
+        return jsonify([]), 200
+    
+    # Get unique crypto IDs for historical price fetching
+    crypto_ids = list(set([holding.crypto.api_id for holding in holdings]))
+    
+    # Calculate date range (last 30 days)
+    from datetime import datetime, timedelta
+    end_date = datetime.now()
+    start_date = end_date - timedelta(days=30)
+    
+    portfolio_history = []
+    
+    try:
+        # Fetch historical prices for each crypto using CoinGecko's historical endpoint
+        for crypto_id in crypto_ids:
+            url = f"https://api.coingecko.com/api/v3/coins/{crypto_id}/market_chart/range"
+            params = {
+                'vs_currency': 'usd',
+                'from': int(start_date.timestamp()),
+                'to': int(end_date.timestamp())
+            }
+            
+            response = requests.get(url, params=params, timeout=10)
+            response.raise_for_status()
+            data = response.json()
+            
+            # Process daily prices (CoinGecko returns hourly data, we'll take daily averages)
+            prices = data.get('prices', [])
+            daily_prices = {}
+            
+            for timestamp_ms, price in prices:
+                date = datetime.fromtimestamp(timestamp_ms / 1000).strftime('%Y-%m-%d')
+                if date not in daily_prices:
+                    daily_prices[date] = []
+                daily_prices[date].append(price)
+            
+            # Calculate average daily price for each day
+            for date, price_list in daily_prices.items():
+                avg_price = sum(price_list) / len(price_list)
+                daily_prices[date] = avg_price
+            
+            # Store the daily prices for this crypto
+            for holding in holdings:
+                if holding.crypto.api_id == crypto_id:
+                    holding.daily_prices = daily_prices
+        
+        # Calculate portfolio value for each day
+        for i in range(30):
+            current_date = start_date + timedelta(days=i)
+            date_str = current_date.strftime('%Y-%m-%d')
+            
+            daily_value = 0
+            for holding in holdings:
+                if hasattr(holding, 'daily_prices') and date_str in holding.daily_prices:
+                    daily_value += holding.quantity * holding.daily_prices[date_str]
+            
+            portfolio_history.append({
+                'date': date_str,
+                'value': round(daily_value, 2)
+            })
+            
+    except Exception as e:
+        print(f"Error fetching historical portfolio data: {e}")
+        # Fallback: return empty array
+        return jsonify([]), 200
+    
+    return jsonify(portfolio_history), 200
