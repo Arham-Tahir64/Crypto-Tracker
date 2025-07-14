@@ -250,21 +250,58 @@ def add_transaction():
 @main_bp.route('/portfolio', methods=['GET'])
 @jwt_required()
 def get_user_portfolio():
-    # Get the logged-in user's portfolio, including P&L and cached prices.
+    # Get the logged-in user's portfolio, including P&L and live prices from CoinGecko.
     current_user_id = get_jwt_identity()
     holdings = PortfolioHolding.query.filter_by(user_id=current_user_id).join(Crypto).all()
     portfolio_data = []
+    
+    # Get current prices from CoinGecko for all cryptos in portfolio
+    crypto_ids = [holding.crypto.api_id for holding in holdings]
+    current_prices = {}
+    
+    if crypto_ids:
+        try:
+            # Fetch current prices from CoinGecko
+            url = "https://api.coingecko.com/api/v3/simple/price"
+            params = {
+                'ids': ','.join(crypto_ids),
+                'vs_currencies': 'usd'
+            }
+            response = requests.get(url, params=params, timeout=10)
+            response.raise_for_status()
+            current_prices = response.json()
+        except Exception as e:
+            print(f"Error fetching current prices: {e}")
+            # Fallback to cached prices
+            current_prices = {}
+    
     for holding in holdings:
         holding_dict = holding.to_dict()
-        current_price = holding.crypto.last_updated_price
+        
+        # Add crypto object to match frontend expectations
+        holding_dict['crypto'] = {
+            'id': holding.crypto.id,
+            'name': holding.crypto.name,
+            'symbol': holding.crypto.symbol,
+            'api_id': holding.crypto.api_id,
+            'logo_url': holding.crypto.logo_url
+        }
+        
+        # Get current price (live from CoinGecko or cached)
+        current_price = current_prices.get(holding.crypto.api_id, {}).get('usd', holding.crypto.last_updated_price)
+        if current_price is None:
+            current_price = holding.crypto.last_updated_price or 0
+        
         current_value = holding.quantity * current_price
         gain_loss = current_value - (holding.quantity * holding.average_buy_price)
         percentage_change = (gain_loss / (holding.quantity * holding.average_buy_price)) * 100 if (holding.quantity * holding.average_buy_price) else 0
+        
         holding_dict['current_price'] = current_price
         holding_dict['current_value'] = current_value
         holding_dict['gain_loss'] = gain_loss
         holding_dict['percentage_change'] = percentage_change
         portfolio_data.append(holding_dict)
+    
     return jsonify(portfolio_data), 200
 
 
@@ -274,14 +311,42 @@ def get_portfolio_summary():
     # Give a quick summary of the user's portfolio: total value, P&L, etc.
     current_user_id = get_jwt_identity()
     holdings = PortfolioHolding.query.filter_by(user_id=current_user_id).join(Crypto).all()
+    
+    # Get current prices from CoinGecko for all cryptos in portfolio
+    crypto_ids = [holding.crypto.api_id for holding in holdings]
+    current_prices = {}
+    
+    if crypto_ids:
+        try:
+            # Fetch current prices from CoinGecko
+            url = "https://api.coingecko.com/api/v3/simple/price"
+            params = {
+                'ids': ','.join(crypto_ids),
+                'vs_currencies': 'usd'
+            }
+            response = requests.get(url, params=params, timeout=10)
+            response.raise_for_status()
+            current_prices = response.json()
+        except Exception as e:
+            print(f"Error fetching current prices: {e}")
+            # Fallback to cached prices
+            current_prices = {}
+    
     total_current_value = 0
     total_cost_basis = 0
+    
     for holding in holdings:
-        current_price = holding.crypto.last_updated_price
+        # Get current price (live from CoinGecko or cached)
+        current_price = current_prices.get(holding.crypto.api_id, {}).get('usd', holding.crypto.last_updated_price)
+        if current_price is None:
+            current_price = holding.crypto.last_updated_price or 0
+        
         total_current_value += holding.quantity * current_price
         total_cost_basis += holding.quantity * holding.average_buy_price
+    
     total_gain_loss = total_current_value - total_cost_basis
     total_percentage_change = (total_gain_loss / total_cost_basis) * 100 if total_cost_basis else 0
+    
     summary = {
         "total_current_value": total_current_value,
         "total_cost_basis": total_cost_basis,

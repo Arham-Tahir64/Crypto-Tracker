@@ -6,6 +6,9 @@ import { Plus, TrendingUp, TrendingDown, Wallet, Activity, PieChart } from "luci
 import GoogleLoginButton from "../../components/Auth/GoogleLoginButton";
 import { useAuth } from "../../context/AuthContext"
 import AddTransactionModal from "../../components/Transactions/AddTransactionModal"
+import PortfolioSummary from "../../components/Portfolio/PortfolioSummary"
+import HoldingsList from "../../components/Portfolio/HoldingsList"
+import TransactionsList from "../../components/Portfolio/TransactionsList"
 
 export default function Dashboard() {
   const [isAddTransactionOpen, setIsAddTransactionOpen] = useState(false);
@@ -46,8 +49,8 @@ export default function Dashboard() {
   };
 
   const handleTransactionAdded = () => {
-    // TODO: Refresh portfolio data
-    console.log('Transaction added, refresh portfolio data');
+    // Refresh portfolio data by triggering a page reload
+    window.location.reload();
   };
 
   return (
@@ -98,43 +101,7 @@ export default function Dashboard() {
       </header>
 
       <div className="container mx-auto px-4 py-6 bg-white">
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
-          <div className="p-6 bg-white rounded-lg border border-gray-200 shadow-sm">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-medium text-gray-900">Total Portfolio Value</h3>
-              <Wallet className="h-4 w-4 text-gray-500" />
-            </div>
-            <div className="text-2xl font-bold text-gray-900">$0.00</div>
-            <div className="text-xs text-gray-500">No data available</div>
-          </div>
-
-          <div className="p-6 bg-white rounded-lg border border-gray-200 shadow-sm">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-medium text-gray-900">Total P&L</h3>
-              <TrendingUp className="h-4 w-4 text-gray-500" />
-            </div>
-            <div className="text-2xl font-bold text-gray-900">$0.00</div>
-            <div className="text-xs text-gray-500">No data available</div>
-          </div>
-
-          <div className="p-6 bg-white rounded-lg border border-gray-200 shadow-sm">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-medium text-gray-900">Holdings</h3>
-              <Activity className="h-4 w-4 text-gray-500" />
-            </div>
-            <div className="text-2xl font-bold text-gray-900">0</div>
-            <div className="text-xs text-gray-500">No cryptocurrencies</div>
-          </div>
-
-          <div className="p-6 bg-white rounded-lg border border-gray-200 shadow-sm">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-medium text-gray-900">Best Performer</h3>
-              <TrendingUp className="h-4 w-4 text-gray-500" />
-            </div>
-            <div className="text-2xl font-bold text-gray-900">-</div>
-            <div className="text-xs text-gray-500">No data available</div>
-          </div>
-        </div>
+        <PortfolioSummary />
 
         <div className="space-y-6">
           <div className="flex space-x-2 border-b border-gray-200">
@@ -150,30 +117,8 @@ export default function Dashboard() {
           </div>
 
           <div className="space-y-6">
-            <div className="grid gap-6 lg:grid-cols-3">
-              <div className="lg:col-span-2 p-6 bg-white rounded-lg border border-gray-200 shadow-sm">
-                <h3 className="text-lg font-semibold mb-2 text-gray-900">Portfolio Performance</h3>
-                <p className="text-sm text-gray-500 mb-4">Your portfolio value over time</p>
-                <div className="h-64 flex items-center justify-center text-gray-500">
-                  Chart here
-                </div>
-              </div>
-
-              <div className="p-6 bg-white rounded-lg border border-gray-200 shadow-sm">
-                <h3 className="text-lg font-semibold mb-2 text-gray-900">Top Holdings</h3>
-                <p className="text-sm text-gray-500 mb-4">Your largest positions</p>
-                <div className="text-center text-gray-500 py-8">
-                  No holdings data available
-                </div>
-              </div>
-            </div>
-
-            <div className="p-6 bg-white rounded-lg border border-gray-200 shadow-sm">
-              <h3 className="text-lg font-semibold mb-4 text-gray-900">Recent Transactions</h3>
-              <div className="text-center text-gray-500 py-8">
-                No transactions available
-              </div>
-            </div>
+            <HoldingsList />
+            <TransactionsList />
           </div>
         </div>
       </div>
