@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { Plus, TrendingUp, TrendingDown, Wallet, Activity, PieChart } from "lucide-react"
+import GoogleLoginButton from "../components/Auth/GoogleLoginButton";
 
 export default function Dashboard() {
   const [isAddTransactionOpen, setIsAddTransactionOpen] = useState(false)
@@ -22,6 +23,9 @@ export default function Dashboard() {
               <Plus className="h-4 w-4 mr-2" />
               Add Transaction
             </button>
+            <div className="ml-4">
+              <GoogleLoginButton />
+            </div>
           </div>
         </div>
       </header>

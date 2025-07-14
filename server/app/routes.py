@@ -64,7 +64,7 @@ def login():
     }), 200
 
 
-# ----------- CRYPTOCURRENCY ROUTES (Added based on previous suggestions) -----------
+# ----------- CRYPTOCURRENCY ROUTES -----------
 
 @main_bp.route('/cryptos', methods=['GET'])
 @jwt_required()
