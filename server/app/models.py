@@ -25,6 +25,9 @@ class User(db.Model):
     # A longer string length (e.g., 255) is recommended for storing password hashes.
     password_hash = db.Column(db.String(255), nullable=False)
 
+    # Profile Picture: URL to the user's profile picture (optional, for Google OAuth users)
+    profile_picture = db.Column(db.String(500), nullable=True)
+
     # Creation Timestamp: Automatically set when a new user is created
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
@@ -52,6 +55,7 @@ class User(db.Model):
             'id': self.id,
             'username': self.username,
             'email': self.email,
+            'profile_picture': self.profile_picture,
             'created_at': self.created_at.isoformat() + 'Z', # ISO format for date/time + Z for UTC
             'updated_at': self.updated_at.isoformat() + 'Z'
         }

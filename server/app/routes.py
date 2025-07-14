@@ -29,8 +29,10 @@ def google_auth():
         return jsonify({'message': 'Missing token'}), 400
 
     try:
+        print(f"Received token: {token[:50]}...")  # Debug: print first 50 chars
         # Verify the token with Google
         idinfo = id_token.verify_oauth2_token(token, google_requests.Request())
+        print(f"Token verified successfully. User info: {idinfo}")  # Debug
         email = idinfo['email']
         name = idinfo.get('name')
         picture = idinfo.get('picture')
@@ -41,6 +43,7 @@ def google_auth():
             user = User(username=email, email=email, password_hash='', profile_picture=picture)
             db.session.add(user)
             db.session.commit()
+            print(f"Created new user: {email}")  # Debug
 
         return jsonify({
             'message': 'Login successful',
@@ -50,7 +53,8 @@ def google_auth():
 
     except Exception as e:
         print(f"Google auth error: {e}")
-        return jsonify({'message': 'Invalid token'}), 400
+        print(f"Error type: {type(e)}")  # Debug
+        return jsonify({'message': f'Invalid token: {str(e)}'}), 400
     
 
 @main_bp.route('/register', methods=['POST'])
