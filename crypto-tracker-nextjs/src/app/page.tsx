@@ -1,184 +1,119 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
-import { Plus, TrendingUp, TrendingDown, Wallet, Activity, PieChart } from "lucide-react"
-import GoogleLoginButton from "../components/Auth/GoogleLoginButton";
+import { useRouter } from "next/navigation"
+import { PieChart, TrendingUp, Shield, BarChart3, ArrowRight } from "lucide-react"
+import GoogleLoginButton from "../components/Auth/GoogleLoginButton"
+import { useAuth } from "../context/AuthContext"
 
-export default function Dashboard() {
-  const [isAddTransactionOpen, setIsAddTransactionOpen] = useState(false);
-  const [googleUser, setGoogleUser] = useState<any>(null);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+export default function LandingPage() {
+  const router = useRouter()
+  const { user, login } = useAuth()
 
-  // Close dropdown if clicked outside
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setDropdownOpen(false);
-      }
-    }
-    if (dropdownOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    } else {
-      document.removeEventListener("mousedown", handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [dropdownOpen]);
+  // Redirect to dashboard after successful login
+  const handleLogin = (userData: any) => {
+    login({
+      email: userData.email,
+      name: userData.name,
+      picture: userData.picture
+    })
+    router.push('/dashboard')
+  }
 
   return (
-    <div className="min-h-screen bg-white">
-      <header className="border-b bg-white">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      {/* Navigation */}
+      <nav className="bg-white shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <PieChart className="h-8 w-8 text-blue-600" />
               <h1 className="text-2xl font-bold text-gray-900">CryptoTracker</h1>
             </div>
-            <div className="flex items-center gap-2">
-              <button 
-                onClick={() => setIsAddTransactionOpen(true)}
-                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Transaction
-              </button>
-              {googleUser && googleUser.picture ? (
-                <div className="relative ml-2" ref={dropdownRef}>
-                  <img
-                    src={googleUser.picture}
-                    alt="Profile"
-                    className="w-10 h-10 rounded-full border border-gray-300 cursor-pointer"
-                    onClick={() => setDropdownOpen((open) => !open)}
-                  />
-                  {dropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
-                      <div className="px-4 py-2 text-gray-900 font-medium border-b border-gray-100">
-                        {googleUser.name || googleUser.email}
-                      </div>
-                      <button
-                        className="w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100 rounded-b-lg"
-                        onClick={() => {
-                          setGoogleUser(null);
-                          setDropdownOpen(false);
-                        }}
-                      >
-                        Sign Out
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <GoogleLoginButton onLogin={setGoogleUser} />
-              )}
-            </div>
+            <GoogleLoginButton onLogin={handleLogin} />
           </div>
         </div>
-      </header>
+      </nav>
 
-      <div className="container mx-auto px-4 py-6 bg-white">
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
-          <div className="p-6 bg-white rounded-lg border border-gray-200 shadow-sm">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-medium text-gray-900">Total Portfolio Value</h3>
-              <Wallet className="h-4 w-4 text-gray-500" />
-            </div>
-            <div className="text-2xl font-bold text-gray-900">$0.00</div>
-            <div className="text-xs text-gray-500">No data available</div>
-          </div>
-
-          <div className="p-6 bg-white rounded-lg border border-gray-200 shadow-sm">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-medium text-gray-900">Total P&L</h3>
-              <TrendingUp className="h-4 w-4 text-gray-500" />
-            </div>
-            <div className="text-2xl font-bold text-gray-900">$0.00</div>
-            <div className="text-xs text-gray-500">No data available</div>
-          </div>
-
-          <div className="p-6 bg-white rounded-lg border border-gray-200 shadow-sm">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-medium text-gray-900">Holdings</h3>
-              <Activity className="h-4 w-4 text-gray-500" />
-            </div>
-            <div className="text-2xl font-bold text-gray-900">0</div>
-            <div className="text-xs text-gray-500">No cryptocurrencies</div>
-          </div>
-
-          <div className="p-6 bg-white rounded-lg border border-gray-200 shadow-sm">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-medium text-gray-900">Best Performer</h3>
-              <TrendingUp className="h-4 w-4 text-gray-500" />
-            </div>
-            <div className="text-2xl font-bold text-gray-900">-</div>
-            <div className="text-xs text-gray-500">No data available</div>
-          </div>
-        </div>
-
-        <div className="space-y-6">
-          <div className="flex space-x-2 border-b border-gray-200">
-            <button className="px-4 py-2 border-b-2 border-blue-600 text-blue-600 font-medium">
-              Overview
+      {/* Hero Section */}
+      <div className="container mx-auto px-4 py-16">
+        <div className="text-center max-w-4xl mx-auto">
+          <h1 className="text-5xl font-bold text-gray-900 mb-6">
+            Track Your Crypto Portfolio
+            <span className="text-blue-600"> Like a Pro</span>
+          </h1>
+          <p className="text-xl text-gray-600 mb-8">
+            Monitor your cryptocurrency investments with real-time data, 
+            track your portfolio performance, and make informed decisions.
+          </p>
+          <div className="flex justify-center gap-4">
+            <button 
+              onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
+              className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+            >
+              Learn More
+              <ArrowRight className="h-4 w-4" />
             </button>
-            <button className="px-4 py-2 text-gray-500 hover:text-gray-900">
-              Holdings
-            </button>
-            <button className="px-4 py-2 text-gray-500 hover:text-gray-900">
-              Transactions
-            </button>
-          </div>
-
-          <div className="space-y-6">
-            <div className="grid gap-6 lg:grid-cols-3">
-              <div className="lg:col-span-2 p-6 bg-white rounded-lg border border-gray-200 shadow-sm">
-                <h3 className="text-lg font-semibold mb-2 text-gray-900">Portfolio Performance</h3>
-                <p className="text-sm text-gray-500 mb-4">Your portfolio value over time</p>
-                <div className="h-64 flex items-center justify-center text-gray-500">
-                  Chart here
-                </div>
-              </div>
-
-              <div className="p-6 bg-white rounded-lg border border-gray-200 shadow-sm">
-                <h3 className="text-lg font-semibold mb-2 text-gray-900">Top Holdings</h3>
-                <p className="text-sm text-gray-500 mb-4">Your largest positions</p>
-                <div className="text-center text-gray-500 py-8">
-                  No holdings data available
-                </div>
-              </div>
-            </div>
-
-            <div className="p-6 bg-white rounded-lg border border-gray-200 shadow-sm">
-              <h3 className="text-lg font-semibold mb-4 text-gray-900">Recent Transactions</h3>
-              <div className="text-center text-gray-500 py-8">
-                No transactions available
-              </div>
-            </div>
           </div>
         </div>
       </div>
 
-      {isAddTransactionOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4 shadow-lg">
-            <h3 className="text-lg font-semibold mb-4 text-gray-900">Add Transaction</h3>
-            <p className="text-sm text-gray-500 mb-4">
-              Transaction details here
-            </p>
-            <div className="flex justify-end space-x-2">
-              <button 
-                onClick={() => setIsAddTransactionOpen(false)}
-                className="px-4 py-2 text-gray-500 hover:text-gray-900"
-              >
-                Cancel
-              </button>
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-                Add Transaction
-              </button>
+      {/* Features Section */}
+      <div id="features" className="container mx-auto px-4 py-16">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">Why Choose CryptoTracker?</h2>
+          <p className="text-lg text-gray-600">Everything you need to manage your crypto investments</p>
+        </div>
+        
+        <div className="grid md:grid-cols-3 gap-8">
+          <div className="bg-white p-6 rounded-lg shadow-sm">
+            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+              <BarChart3 className="h-6 w-6 text-blue-600" />
             </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">Portfolio Tracking</h3>
+            <p className="text-gray-600">
+              Monitor your cryptocurrency holdings with real-time price updates and performance metrics.
+            </p>
+          </div>
+          
+          <div className="bg-white p-6 rounded-lg shadow-sm">
+            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+              <TrendingUp className="h-6 w-6 text-green-600" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">Profit & Loss</h3>
+            <p className="text-gray-600">
+              Track your gains and losses with detailed P&L analysis and performance charts.
+            </p>
+          </div>
+          
+          <div className="bg-white p-6 rounded-lg shadow-sm">
+            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+              <Shield className="h-6 w-6 text-purple-600" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">Secure & Private</h3>
+            <p className="text-gray-600">
+              Your data is secure with Google OAuth authentication and encrypted storage.
+            </p>
           </div>
         </div>
-      )}
+      </div>
+
+      {/* CTA Section */}
+      <div className="bg-white py-16">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">Ready to Start?</h2>
+          <p className="text-lg text-gray-600 mb-8">
+            Join thousands of crypto investors who trust CryptoTracker to manage their portfolios.
+          </p>
+          <GoogleLoginButton onLogin={handleLogin} />
+        </div>
+      </div>
+
+      {/* Footer */}
+      <footer className="bg-gray-900 text-white py-8">
+        <div className="container mx-auto px-4 text-center">
+          <p>&copy; 2025 CryptoTracker. All rights reserved.</p>
+        </div>
+      </footer>
     </div>
   )
 }
