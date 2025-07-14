@@ -28,6 +28,12 @@ export default function GoogleLoginButton({ onLogin }: GoogleLoginButtonProps) {
         if (response.ok) {
           const data = await response.json();
           const decoded = jwtDecode(credentialResponse.credential);
+          
+          // Store JWT token if provided by backend
+          if (data.access_token) {
+            localStorage.setItem('jwt_token', data.access_token);
+          }
+          
           setUser(decoded);
           if (onLogin) onLogin(decoded);
         } else {

@@ -48,7 +48,7 @@ def google_auth():
         return jsonify({
             'message': 'Login successful',
             'user': user.to_dict(),
-            # 'access_token': access_token
+            'access_token': create_access_token(identity=str(user.id))
         }), 200
 
     except Exception as e:
@@ -150,6 +150,14 @@ def get_crypto_by_symbol(symbol):
     return jsonify(crypto.to_dict()), 200
 
 
+@main_bp.route('/cryptos/db', methods=['GET'])
+@jwt_required()
+def get_db_cryptos():
+    # Get all cryptos from our database for transaction modal
+    cryptos = Crypto.query.all()
+    return jsonify([crypto.to_dict() for crypto in cryptos]), 200
+
+
 # ----------- TRANSACTIONS -----------
 
 @main_bp.route('/transactions', methods=['GET'])
@@ -167,14 +175,14 @@ def add_transaction():
     # Add a buy or sell transaction for the logged-in user. Updates portfolio too.
     current_user_id = get_jwt_identity()
     data = request.get_json()
-    required_fields = ['crypto_id', 'quantity', 'price_per_coin', 'transaction_type']
+    required_fields = ['crypto_id', 'quantity', 'price_per_coin', 'transaction_type', 'transaction_date']
     if not data or not all(field in data for field in required_fields):
         return jsonify({"message": "Missing required transaction data"}), 400
     crypto_id = data['crypto_id']
     quantity = float(data['quantity'])
     price_per_coin = float(data['price_per_coin'])
     transaction_type = data['transaction_type'].lower()
-    notes = data.get('notes')
+    transaction_date = datetime.fromisoformat(data['transaction_date'])
     if transaction_type not in ['buy', 'sell']:
         return jsonify({"message": "Invalid transaction_type. Must be 'buy' or 'sell'."}), 400
     if quantity <= 0 or price_per_coin <= 0:
@@ -190,7 +198,7 @@ def add_transaction():
         quantity=quantity,
         price_per_coin=price_per_coin,
         fiat_value=fiat_value,
-        notes=notes
+        transaction_date=transaction_date
     )
     try:
         db.session.add(new_transaction)

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { Plus, TrendingUp, TrendingDown, Wallet, Activity, PieChart } from "lucide-react"
 import GoogleLoginButton from "../../components/Auth/GoogleLoginButton";
 import { useAuth } from "../../context/AuthContext"
+import AddTransactionModal from "../../components/Transactions/AddTransactionModal"
 
 export default function Dashboard() {
   const [isAddTransactionOpen, setIsAddTransactionOpen] = useState(false);
@@ -42,6 +43,11 @@ export default function Dashboard() {
     logout();
     setDropdownOpen(false);
     router.push('/');
+  };
+
+  const handleTransactionAdded = () => {
+    // TODO: Refresh portfolio data
+    console.log('Transaction added, refresh portfolio data');
   };
 
   return (
@@ -172,27 +178,11 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {isAddTransactionOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4 shadow-lg">
-            <h3 className="text-lg font-semibold mb-4 text-gray-900">Add Transaction</h3>
-            <p className="text-sm text-gray-500 mb-4">
-              Transaction details here
-            </p>
-            <div className="flex justify-end space-x-2">
-              <button 
-                onClick={() => setIsAddTransactionOpen(false)}
-                className="px-4 py-2 text-gray-500 hover:text-gray-900"
-              >
-                Cancel
-              </button>
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-                Add Transaction
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <AddTransactionModal
+        isOpen={isAddTransactionOpen}
+        onClose={() => setIsAddTransactionOpen(false)}
+        onTransactionAdded={handleTransactionAdded}
+      />
     </div>
   )
 } 
