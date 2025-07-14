@@ -5,8 +5,9 @@ from flask import Flask
 from dotenv import load_dotenv # Import to load environment variables from .env
 import os # Import for accessing environment variables
 from flask_jwt_extended import JWTManager
+from flask_cors import CORS
 from .models import db  # Import db from models.py
-from .routes import main_bp
+from .routes import main_bp, auth_bp
 
 def create_app():
     # Load environment variables from the .env file
@@ -14,6 +15,9 @@ def create_app():
     load_dotenv()
 
     app = Flask(__name__)
+
+    # Enable CORS for all routes
+    CORS(app)
 
     # --- Application Configuration ---
 
@@ -43,5 +47,6 @@ def create_app():
     # Register the main_bp blueprint, which contains all your API routes.
     # The url_prefix defined on the blueprint (e.g., '/api') will be applied here.
     app.register_blueprint(main_bp)
+    app.register_blueprint(auth_bp)
 
     return app

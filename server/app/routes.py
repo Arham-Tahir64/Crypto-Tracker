@@ -7,16 +7,51 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 import requests # For making external API calls (e.g., to CoinGecko)
 from datetime import datetime
+from google.oauth2 import id_token
+from google.auth.transport import requests as google_requests
 
 # Import all your models
 from .models import db, User, Crypto, Transaction, PortfolioHolding
 
 # Define a single Blueprint for all routes in this file.
-# I'm removing the '/api' url_prefix so routes are at the root.
 main_bp = Blueprint('main_api', __name__)
+auth_bp = Blueprint('auth', __name__)
+
 
 
 # ----------- USER AUTHENTICATION -----------
+
+@auth_bp.route('/auth/google', methods=['POST'])
+def google_auth():
+    data = request.get_json()
+    token = data.get('credential')
+    if not token:
+        return jsonify({'message': 'Missing token'}), 400
+
+    try:
+        # Verify the token with Google
+        idinfo = id_token.verify_oauth2_token(token, google_requests.Request())
+        email = idinfo['email']
+        name = idinfo.get('name')
+        picture = idinfo.get('picture')
+
+        # Find or create user
+        user = User.query.filter_by(email=email).first()
+        if not user:
+            user = User(username=email, email=email, password_hash='', profile_picture=picture)
+            db.session.add(user)
+            db.session.commit()
+
+        return jsonify({
+            'message': 'Login successful',
+            'user': user.to_dict(),
+            # 'access_token': access_token
+        }), 200
+
+    except Exception as e:
+        print(f"Google auth error: {e}")
+        return jsonify({'message': 'Invalid token'}), 400
+    
 
 @main_bp.route('/register', methods=['POST'])
 def register():

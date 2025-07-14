@@ -11,5 +11,6 @@
             "password": "Arham#5230",
             "connectionTimeout": 30
         }
-    ]
+    ],
+    "git.ignoreLimitWarning": true
 }
